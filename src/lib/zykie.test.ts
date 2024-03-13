@@ -53,12 +53,12 @@ const variation = zykie
         ba: "Osnovni var{variation}",
         fr: null,
     })
-    .variation(({variation}) => variation=== "first", {
+    .variation(({ variation }) => variation === "first", {
         en: "first var{variation}",
         de: "erste var{variation}",
         ba: "prvi var{variation}",
     })
-    .variation(({ variation}) => variation === "second", {
+    .variation(({ variation }) => variation === "second", {
         en: "second var{variation}",
         de: "zweite var{variation}",
         ba: "drugi var{variation}",
@@ -124,7 +124,10 @@ test("Check translations for fr locale with fallback locale", () => {
     expect(hello.get({})).toBe("Zdravo!");
 
     expect(
-        greet.get({ name: greetStrings.name, company: greetStrings.company })
+        greet.get({
+            name: greetStrings.name,
+            company: greetStrings.company,
+        })
     ).toBe(
         `Zdravo ${greetStrings.name}, vi radite kod ${greetStrings.company}`
     );

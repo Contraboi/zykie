@@ -42,7 +42,7 @@ export class Zykie<
               }
             : `The variables in the translations do not match the variables in the fallback '${TFallbackLocale}' translation`
     ) {
-        return new CreateTranslastion<TString, TDefaultString, TLocales>({
+        return new ZykieTranslation<TString, TDefaultString, TLocales>({
             translations,
             fallbackLocale: this.fallbackLocale,
         });
@@ -53,7 +53,7 @@ export class Zykie<
     }
 }
 
-class CreateTranslastion<
+class ZykieTranslation<
     TString extends string,
     TDefaultString extends string,
     TLocales extends readonly string[],
