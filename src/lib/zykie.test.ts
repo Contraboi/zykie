@@ -11,12 +11,6 @@ const zykie = new Zykie({
     fallbackLocale,
 });
 
-const etst = zykie.create({
-    en: "Hello! var{name}",
-    de: "Hallo! var{name}",
-    ba: "Zdravo! var{name}",
-    fr: null,
-});
 const hello = zykie.create({
     en: "Hello!",
     de: "Hallo!",
@@ -31,67 +25,48 @@ const greet = zykie.create({
     fr: null,
 });
 
-const birthdayInfo = zykie
+const youHaveNDollars = zykie
     .create({
-        en: "You were born on var{date} in var{place} and you are var{age} years old",
-        de: "Sie wurden am var{date} in var{place} geboren und sind var{age} Jahre alt",
-        ba: "Rođeni ste var{date} u var{place} i imate var{age} godina",
+        en: "You have var{amount} dollars",
+        de: "Sie haben var{amount} Dollar",
+        ba: "Imate var{amount} dolara",
         fr: null,
     })
-    .variation(({ age }) => age === 1, {
-        ba: "Rođeni ste var{date} u var{place} i imate var{age} godinu",
+    .variation(({ amount }) => parseInt(amount) === 1, {
+        en: "You have var{amount} dollar",
+        ba: "Imate var{amount} dolar",
     })
     .variation(
-        ({ age }) => {
-            const number = Number(age);
-            return (
-                number % 10 == 2 ||
-                number % 10 === 3 ||
-                number % 10 === 4 ||
-                (number > 1 && number < 5)
-            );
+        ({ amount }) => {
+            const number = parseInt(amount);
+            return number > 20 && number % 10 === 1;
         },
         {
-            ba: "Rođeni ste var{date} u var{place} i imate var{age} godine",
+            ba: "Imate var{amount} dolar",
         }
     );
 
-// zykie
-const variaton = zykie
+const variation = zykie
     .create({
-        en: "default var{variaton}",
-        de: "Standard var{variaton}",
-        ba: "Osnovni var{variaton}",
+        en: "default var{variation}",
+        de: "Standard var{variation}",
+        ba: "Osnovni var{variation}",
         fr: null,
     })
-    .variation(({ variaton }) => variaton === "first", {
-        en: "first var{variaton}",
-        de: "erste var{variaton}",
-        ba: "prvi var{variaton}",
+    .variation(({variation}) => variation=== "first", {
+        en: "first var{variation}",
+        de: "erste var{variation}",
+        ba: "prvi var{variation}",
     })
-    .variation(({ variaton }) => variaton === "second", {
-        en: "second var{variaton}",
-        de: "zweite var{variaton}",
-        ba: "drugi var{variaton}",
-    })
-    .variation(
-        ({ variaton }) => variaton === "first" || variaton === "second",
-        {
-            en: "fourth var{variaton}",
-            de: "vierte var{variaton}",
-            ba: "četvrti var{variaton}",
-        }
-    );
+    .variation(({ variation}) => variation === "second", {
+        en: "second var{variation}",
+        de: "zweite var{variation}",
+        ba: "drugi var{variation}",
+    });
 
 const greetStrings = {
     name: "Contra",
-    company: "Gengo",
-};
-
-const birthdayInfoStrings = {
-    date: "01.01.2000",
-    place: "Wonderland",
-    age: "24",
+    company: "Zykie",
 };
 
 test("Check default translations", () => {
@@ -101,14 +76,10 @@ test("Check default translations", () => {
     ).toBe(`Hello ${greetStrings.name}, you work at ${greetStrings.company}`);
 
     expect(
-        birthdayInfo.get({
-            date: birthdayInfoStrings.date,
-            place: birthdayInfoStrings.place,
-            age: birthdayInfoStrings.age,
+        youHaveNDollars.get({
+            amount: "1",
         })
-    ).toBe(
-        `You were born on ${birthdayInfoStrings.date} in ${birthdayInfoStrings.place} and you are ${birthdayInfoStrings.age} years old`
-    );
+    ).toBe(`You have 1 dollar`);
 });
 
 test("Check translations for de locale", () => {
@@ -123,14 +94,10 @@ test("Check translations for de locale", () => {
     );
 
     expect(
-        birthdayInfo.get({
-            date: birthdayInfoStrings.date,
-            place: birthdayInfoStrings.place,
-            age: birthdayInfoStrings.age,
+        youHaveNDollars.get({
+            amount: "1",
         })
-    ).toBe(
-        `Sie wurden am ${birthdayInfoStrings.date} in ${birthdayInfoStrings.place} geboren und sind ${birthdayInfoStrings.age} Jahre alt`
-    );
+    ).toBe(`Sie haben 1 Dollar`);
 });
 
 test("Check translations for ba locale", () => {
@@ -145,14 +112,10 @@ test("Check translations for ba locale", () => {
     );
 
     expect(
-        birthdayInfo.get({
-            date: birthdayInfoStrings.date,
-            place: birthdayInfoStrings.place,
-            age: birthdayInfoStrings.age,
+        youHaveNDollars.get({
+            amount: "1",
         })
-    ).toBe(
-        `Rođeni ste ${birthdayInfoStrings.date} u ${birthdayInfoStrings.place} i imate ${birthdayInfoStrings.age} godine`
-    );
+    ).toBe(`Imate 1 dolar`);
 });
 
 test("Check translations for fr locale with fallback locale", () => {
@@ -167,27 +130,16 @@ test("Check translations for fr locale with fallback locale", () => {
     );
 
     expect(
-        birthdayInfo.get({
-            date: birthdayInfoStrings.date,
-            place: birthdayInfoStrings.place,
-            age: birthdayInfoStrings.age,
+        youHaveNDollars.get({
+            amount: "1",
         })
-    ).toBe(
-        `Rođeni ste ${birthdayInfoStrings.date} u ${birthdayInfoStrings.place} i imate ${birthdayInfoStrings.age} godine`
-    );
+    ).toBe(`Imate 1 dolar`);
 });
 
 test("With overwritten locale from de to ba", () => {
     zykie.changeLocale("de");
 
-    expect(
-        hello.get(
-            {},
-            {
-                locale: "ba",
-            }
-        )
-    ).toBe("Zdravo!");
+    expect(hello.get({}, { locale: "ba" })).toBe("Zdravo!");
 
     expect(
         greet.get(
@@ -200,41 +152,47 @@ test("With overwritten locale from de to ba", () => {
         `Zdravo ${greetStrings.name}, vi radite kod ${greetStrings.company}`
     );
 
-    expect(
-        birthdayInfo.get(
-            {
-                date: birthdayInfoStrings.date,
-                place: birthdayInfoStrings.place,
-                age: birthdayInfoStrings.age,
-            },
-            {
-                locale: "ba",
-            }
-        )
-    ).toBe(
-        `Rođeni ste ${birthdayInfoStrings.date} u ${birthdayInfoStrings.place} i imate ${birthdayInfoStrings.age} godine`
+    expect(youHaveNDollars.get({ amount: "1" }, { locale: "ba" })).toBe(
+        `Imate 1 dolar`
     );
 });
 
 test("Check variations", () => {
     zykie.changeLocale("en");
 
-    expect(variaton.get({ variaton: "fourth" })).toBe("default fourth");
-    expect(variaton.get({ variaton: "first" })).toBe("first first");
-    expect(variaton.get({ variaton: "second" })).toBe("second second");
+    expect(variation.get({ variation: "fourth" })).toBe("default fourth");
+    expect(variation.get({ variation: "first" })).toBe("first first");
+    expect(variation.get({ variation: "second" })).toBe("second second");
 
     zykie.changeLocale("de");
-    expect(variaton.get({ variaton: "fourth" })).toBe("Standard fourth");
-    expect(variaton.get({ variaton: "first" })).toBe("erste first");
-    expect(variaton.get({ variaton: "second" })).toBe("zweite second");
+    expect(variation.get({ variation: "fourth" })).toBe("Standard fourth");
+    expect(variation.get({ variation: "first" })).toBe("erste first");
+    expect(variation.get({ variation: "second" })).toBe("zweite second");
 
     zykie.changeLocale("ba");
-    expect(variaton.get({ variaton: "fourth" })).toBe("Osnovni fourth");
-    expect(variaton.get({ variaton: "first" })).toBe("prvi first");
-    expect(variaton.get({ variaton: "second" })).toBe("drugi second");
+    expect(variation.get({ variation: "fourth" })).toBe("Osnovni fourth");
+    expect(variation.get({ variation: "first" })).toBe("prvi first");
+    expect(variation.get({ variation: "second" })).toBe("drugi second");
 
     zykie.changeLocale("fr");
-    expect(variaton.get({ variaton: "fourth" })).toBe("Osnovni fourth");
-    expect(variaton.get({ variaton: "first" })).toBe("prvi first");
-    expect(variaton.get({ variaton: "second" })).toBe("drugi second");
+    expect(variation.get({ variation: "fourth" })).toBe("Osnovni fourth");
+    expect(variation.get({ variation: "first" })).toBe("prvi first");
+    expect(variation.get({ variation: "second" })).toBe("drugi second");
+
+    zykie.changeLocale("ba");
+    expect(
+        youHaveNDollars.get({
+            amount: "21",
+        })
+    ).toBe("Imate 21 dolar");
+    expect(
+        youHaveNDollars.get({
+            amount: "31",
+        })
+    ).toBe("Imate 31 dolar");
+    expect(
+        youHaveNDollars.get({
+            amount: "44",
+        })
+    ).toBe("Imate 44 dolara");
 });

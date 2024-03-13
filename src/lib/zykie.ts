@@ -1,14 +1,12 @@
-import {
-    Condition,
-    GetVariableFromString,
-    TranslationsRecord,
-    Variables,
-} from "./types";
+import { Condition, GetVariableFromString } from "./types";
 
 let __currentLocale = "";
 
-export class Zykie<TLocales extends readonly string[]> {
-    private fallbackLocale?: TLocales[number];
+export class Zykie<
+    TLocales extends readonly string[],
+    TFallbackLocale extends string,
+> {
+    private fallbackLocale?: TFallbackLocale;
 
     constructor({
         locales,
@@ -17,7 +15,7 @@ export class Zykie<TLocales extends readonly string[]> {
     }: {
         locales: TLocales;
         currentLocale: TLocales[number];
-        fallbackLocale: TLocales[number];
+        fallbackLocale: TFallbackLocale;
     }) {
         if (!locales.includes(currentLocale)) {
             throw new Error(
@@ -35,14 +33,16 @@ export class Zykie<TLocales extends readonly string[]> {
         this.fallbackLocale = fallbackLocale;
     }
 
-    public create<TString extends string>(
-        translations: TranslationsRecord<
-            TLocales[number],
-            TString | null,
-            TLocales[number]
-        >
+    public create<TString extends string, TDefaultString extends string>(
+        translations: GetVariableFromString<TString> extends GetVariableFromString<TDefaultString>
+            ? {
+                  [key in TFallbackLocale]: TDefaultString;
+              } & {
+                  [key in TLocales[number]]: TString | null;
+              }
+            : `The variables in the translations do not match the variables in the fallback '${TFallbackLocale}' translation`
     ) {
-        return new CreateTranslastion<TString, TLocales>({
+        return new CreateTranslastion<TString, TDefaultString, TLocales>({
             translations,
             fallbackLocale: this.fallbackLocale,
         });
@@ -53,16 +53,16 @@ export class Zykie<TLocales extends readonly string[]> {
     }
 }
 
-type CurrentTranslations<TLocales extends readonly string[]> =
-    TranslationsRecord<TLocales[number], string | null, TLocales[number]>;
-
 class CreateTranslastion<
     TString extends string,
+    TDefaultString extends string,
     TLocales extends readonly string[],
 > {
     private fallbackLocale: TLocales[number];
     private conditions: Condition<TLocales, TString>[] = [];
-    translations: CurrentTranslations<TLocales>;
+    translations: {
+        [key in TLocales[number]]: TString;
+    };
 
     constructor({ translations, fallbackLocale }) {
         this.fallbackLocale = fallbackLocale;
@@ -70,7 +70,9 @@ class CreateTranslastion<
     }
 
     get(
-        variables: Variables<TString, TLocales[number]>,
+        variables: {
+            [key in GetVariableFromString<TString>]: string;
+        },
         options?: {
             locale?: TLocales[number];
         }
@@ -90,7 +92,9 @@ class CreateTranslastion<
 
     private getTranslatedStringByCondition(
         locale: TLocales[number],
-        variables: Variables<TString, TLocales[number]>
+        variables: {
+            [key in GetVariableFromString<TString>]: string;
+        }
     ): string | null {
         const condition = this.conditions.find((condition) =>
             condition.function(variables)
@@ -121,7 +125,9 @@ class CreateTranslastion<
 
     private setVariables(
         translatedString: string,
-        variables: Variables<TString, TLocales[number]>
+        variables: {
+            [key in GetVariableFromString<TString>]: string;
+        }
     ) {
         const keys = Object.keys(variables) as (keyof typeof variables)[];
         for (const key of keys) {
@@ -134,11 +140,13 @@ class CreateTranslastion<
         return translatedString;
     }
 
-    variation(
-        condition: (
-            values: Record<GetVariableFromString<TString>, string | number>
-        ) => boolean,
-        translations: Partial<CurrentTranslations<TLocales>>
+    variation<TVariation extends string>(
+        condition: (typeof this.conditions)[number]["function"],
+        translations: Partial<{
+            [key in TLocales[number]]: GetVariableFromString<TVariation> extends GetVariableFromString<TDefaultString>
+                ? TVariation
+                : `The variables in the translations do not match the variables in the ${TDefaultString} translation`;
+        }>
     ) {
         this.conditions.push({
             function: condition,
