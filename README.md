@@ -16,7 +16,7 @@ Zykie allows you to easily build & consume fully typesafe translations in your a
 - 🍃&nbsp; Light - zykie has zero deps and a tiny client-side footprint.
 - 🐻&nbsp; Easy to add to your existing brownfield project.
 
-You can try a live demo [here](https://githubbox.com/zykie-enes-p5djdm/githubbox).
+You can try a live demo [here](https://codesandbox.io/p/devbox/zykie-enes-p5djdm).
 
 ```bash
 npm install zykie # or yarn add zykie or pnpm add zykie
