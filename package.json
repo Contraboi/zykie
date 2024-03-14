@@ -1,6 +1,6 @@
 {
   "name": "zykie",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Take the localization of your app to the next level",
   "main": "dist/index.js",
   "type": "module",
