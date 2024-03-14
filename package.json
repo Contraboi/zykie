@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "test": "vitest"
+    "test": "vitest",
+    "publish": "npm run build && npm publish"
   },
   "repository": {
     "type": "git",
