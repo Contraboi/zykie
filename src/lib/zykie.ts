@@ -1,4 +1,4 @@
-import { Condition, GetVariablesFromString } from "./types";
+import {Condition, ConditionFunction, ConditionTranslations, GetVariablesFromString} from "./types";
 
 let __currentLocale = "";
 
@@ -155,7 +155,7 @@ class ZykieTranslation<
     }
 
     variation<TVariation extends string>(
-        condition: (typeof this.conditions)[number]["function"],
+        condition: ConditionFunction<TString>,
         translations: Partial<{
             [key in TLocales[number]]: GetVariablesFromString<TVariation> extends GetVariablesFromString<TString>
                 ? TVariation
@@ -164,7 +164,7 @@ class ZykieTranslation<
     ) {
         this.conditions.push({
             function: condition,
-            translations,
+            translations: translations as ConditionTranslations<TLocales>,
         });
 
         return this;

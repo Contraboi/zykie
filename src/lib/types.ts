@@ -3,14 +3,20 @@ export type GetVariablesFromString<S extends string> =
         ? [TVariableName, ...GetVariablesFromString<TSuffix>]
         : [];
 
+export type ConditionFunction<TString extends string> = (
+    variables: {
+        [key in GetVariablesFromString<TString>[number]]: string;
+    }
+) => boolean;
+
+export type ConditionTranslations<TLocales extends readonly string[]> = {
+    [key in TLocales[number]]: string;
+}
+
 export type Condition<
     TLocales extends readonly string[],
     TString extends string,
 > = {
-    function: (variables: {
-        [key in GetVariablesFromString<TString>[number]]: string;
-    }) => boolean;
-    translations: Partial<{
-        [key in TLocales[number]]: string;
-    }>;
+    function: ConditionFunction<TString>
+    translations: ConditionTranslations<TLocales>
 };
