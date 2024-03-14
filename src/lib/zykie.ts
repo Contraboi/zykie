@@ -6,7 +6,7 @@ export class Zykie<
     TLocales extends readonly string[],
     TFallbackLocale extends string,
 > {
-    private fallbackLocale?: TFallbackLocale;
+    private readonly fallbackLocale: TFallbackLocale;
 
     constructor({
         locales,
@@ -45,8 +45,11 @@ export class Zykie<
               }
             : `The variables in the translations do not match the variables in the fallback '${TFallbackLocale}' translation`
     ) {
+
         return new ZykieTranslation<TString, TDefaultString, TLocales>({
-            translations,
+            translations: translations as {
+                [key in TLocales[number]]: TString;
+            },
             fallbackLocale: this.fallbackLocale,
         });
     }
@@ -61,13 +64,21 @@ class ZykieTranslation<
     TDefaultString extends string,
     TLocales extends readonly string[],
 > {
-    private fallbackLocale: TLocales[number];
+    private readonly fallbackLocale: TLocales[number];
     private conditions: Condition<TLocales, TString>[] = [];
     translations: {
         [key in TLocales[number]]: TString;
     };
 
-    constructor({ translations, fallbackLocale }) {
+    constructor({
+        translations,
+        fallbackLocale,
+    }: {
+        translations: {
+            [key in TLocales[number]]: TString;
+        };
+        fallbackLocale: TLocales[number];
+    }) {
         this.fallbackLocale = fallbackLocale;
         this.translations = translations;
     }
@@ -129,8 +140,7 @@ class ZykieTranslation<
     private setVariables(
         translatedString: string,
         variables: {
-            [key in GetVariablesFromString<TString>[number
-            ] ]: string;
+            [key in GetVariablesFromString<TString>[number]]: string;
         }
     ) {
         const keys = Object.keys(variables) as (keyof typeof variables)[];
@@ -149,7 +159,7 @@ class ZykieTranslation<
         translations: Partial<{
             [key in TLocales[number]]: GetVariablesFromString<TVariation> extends GetVariablesFromString<TString>
                 ? TVariation
-                : `The variables in the translations do not match the variables in the  '${TDefaultString}' translation`;
+                : `The variables in the translations do not match the variables in the ${TDefaultString} translation`;
         }>
     ) {
         this.conditions.push({
