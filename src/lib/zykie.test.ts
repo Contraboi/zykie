@@ -18,6 +18,13 @@ const hello = zykie.create({
   fr: null,
 });
 
+const locale = zykie.create({
+  en: "en var{locale}",
+  de: "en var{locale}",
+  ba: "en var{locale}",
+  fr: null,
+});
+
 const greet = zykie.create({
   en: "Hello var{name}, you work at var{company}",
   de: "Hallo var{name}, Sie arbeiten bei var{company}",
@@ -69,8 +76,14 @@ const greetStrings = {
   company: "Zykie",
 };
 
+test("Check locale", () => {
+  expect(locale.get({ locale: "de" })).toBe("en de");
+  expect(locale.get({ locale: "ba" })).toBe("en ba");
+  expect(locale.get({ locale: "fr" })).toBe("en fr");
+});
+
 test("Check default translations", () => {
-  expect(hello.get({})).toBe("Hello!");
+  expect(hello.get()).toBe("Hello!");
   expect(
     greet.get({ name: greetStrings.name, company: greetStrings.company }),
   ).toBe(`Hello ${greetStrings.name}, you work at ${greetStrings.company}`);
@@ -85,7 +98,7 @@ test("Check default translations", () => {
 test("Check translations for de locale", () => {
   zykie.changeLocale("de");
 
-  expect(hello.get({})).toBe("Hallo!");
+  expect(hello.get()).toBe("Hallo!");
 
   expect(
     greet.get({ name: greetStrings.name, company: greetStrings.company }),
@@ -103,7 +116,7 @@ test("Check translations for de locale", () => {
 test("Check translations for ba locale", () => {
   zykie.changeLocale("ba");
 
-  expect(hello.get({})).toBe("Zdravo!");
+  expect(hello.get()).toBe("Zdravo!");
 
   expect(
     greet.get({ name: greetStrings.name, company: greetStrings.company }),
@@ -119,7 +132,7 @@ test("Check translations for ba locale", () => {
 test("Check translations for fr locale with fallback locale", () => {
   zykie.changeLocale("fr");
 
-  expect(hello.get({})).toBe("Zdravo!");
+  expect(hello.get()).toBe("Zdravo!");
 
   expect(
     greet.get({

@@ -88,7 +88,7 @@ class ZykieTranslation<
     this.translations = translations;
   }
 
-  get(
+  public get(
     ...args: GetVariablesFromString<TString>[number] extends never
       ? [options?: GetOptions<TLocales>]
       : [
@@ -98,14 +98,9 @@ class ZykieTranslation<
           options?: GetOptions<TLocales>,
         ]
   ) {
-    const isFirstArgOptions = !args[0] || "locale" in args[0];
+    const { variables, options } = this.normalizeArgs(args);
+    const locale = options?.locale ?? this.getCurrentLocale();
 
-    const variables = isFirstArgOptions ? {} : args[0];
-    const options = isFirstArgOptions
-      ? (args[0] as GetOptions<TLocales>)
-      : args[1];
-
-    const locale = options?.locale ?? __currentLocale;
     let translatedString = this.getTranslatedStringByCondition(
       locale,
       variables,
@@ -135,6 +130,30 @@ class ZykieTranslation<
     return translatedString ?? null;
   }
 
+  private normalizeArgs(args: any[]): {
+    variables: { [key in GetVariablesFromString<TString>[number]]: string };
+    options?: GetOptions<TLocales>;
+  } {
+    const fallbackTranslation = this.translations[this.fallbackLocale];
+    const hasVariables = fallbackTranslation.match(/var{(.+?)}/g);
+
+    if (hasVariables && args.length === 0) {
+      throw new Error("Missing variables");
+    }
+
+    if (hasVariables || args.length === 2) {
+      return {
+        variables: args[0],
+        options: args[1],
+      };
+    }
+
+    return {
+      variables: {},
+      options: args[0],
+    };
+  }
+
   private getFallbackTranslatedString(locale: TLocales[number]) {
     const translatedString = this.translations[this.fallbackLocale];
 
@@ -157,8 +176,7 @@ class ZykieTranslation<
       [key in GetVariablesFromString<TString>[number]]: string;
     },
   ) {
-    const keys = Object.keys(variables) as (keyof typeof variables)[];
-    for (const key of keys) {
+    for (const key in variables) {
       translatedString = translatedString.replace(
         `var{${key}}`,
         variables[key],
@@ -168,7 +186,7 @@ class ZykieTranslation<
     return translatedString;
   }
 
-  variation<TVariation extends string>(
+  public variation<TVariation extends string>(
     condition: ConditionFunction<TString>,
     translations: Partial<{
       [key in TLocales[number]]: GetVariablesFromString<TVariation> extends GetVariablesFromString<TString>
@@ -182,5 +200,9 @@ class ZykieTranslation<
     });
 
     return this;
+  }
+
+  public getCurrentLocale() {
+    return __currentLocale;
   }
 }
