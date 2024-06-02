@@ -45,7 +45,7 @@ const hello = zykie.create({
     ba: "Zdravo",
 });
 
-console.log(hello.get({})); // Hello
+console.log(hello.get()); // Hello
 ```
 ## Variables
 If you want to use variables in your translations, you can use the `var{variable}` syntax.
