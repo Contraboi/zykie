@@ -100,7 +100,7 @@ class ZykieTranslation<
   ) {
     const isFirstArgOptions = !args[0] || "locale" in args[0];
 
-    const variables = isFirstArgOptions ? null : args[0];
+    const variables = isFirstArgOptions ? {} : args[0];
     const options = isFirstArgOptions
       ? (args[0] as GetOptions<TLocales>)
       : args[1];
