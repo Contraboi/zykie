@@ -60,6 +60,10 @@ export class Zykie<
   }
 }
 
+type GetOptions<T extends readonly string[]> = {
+  locale?: T[number];
+};
+
 class ZykieTranslation<
   TString extends string,
   TDefaultString extends string,
@@ -86,21 +90,21 @@ class ZykieTranslation<
 
   get(
     ...args: GetVariablesFromString<TString>[number] extends never
-      ? [
-          options?: {
-            locale?: TLocales[number];
-          },
-        ]
+      ? [options?: GetOptions<TLocales>]
       : [
           variables: {
             [key in GetVariablesFromString<TString>[number]]: string;
           },
-          options?: {
-            locale?: TLocales[number];
-          },
+          options?: GetOptions<TLocales>,
         ]
   ) {
-    const [variables, options] = args;
+    const isFirstArgOptions = !args[0] || "locale" in args[0];
+
+    const variables = isFirstArgOptions ? null : args[0];
+    const options = isFirstArgOptions
+      ? (args[0] as GetOptions<TLocales>)
+      : args[1];
+
     const locale = options?.locale ?? __currentLocale;
     let translatedString = this.getTranslatedStringByCondition(
       locale,
