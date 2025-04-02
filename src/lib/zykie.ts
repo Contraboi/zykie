@@ -1,11 +1,18 @@
+import fs from "fs";
+import { generateTranslationType } from "./generator";
 import {
   Condition,
   ConditionFunction,
   ConditionTranslations,
   GetVariablesFromString,
 } from "./types";
+import { tryCatch } from "./utils";
 
 let __currentLocale = "";
+
+type GenerateFromJsonOpts = {
+  in: string;
+};
 
 export class Zykie<
   TLocales extends readonly string[],
@@ -36,6 +43,48 @@ export class Zykie<
 
     __currentLocale = currentLocale;
     this.fallbackLocale = fallbackLocale;
+  }
+
+  async generateFromJson<
+    TTranslationMap extends {
+      [K in keyof TTranslationMap]: Record<
+        TLocales[number],
+        TTranslationMap[K][TLocales[number]]
+      >;
+    },
+  >(
+    opts: GenerateFromJsonOpts,
+  ): Promise<{
+    [K in keyof TTranslationMap]: ZykieTranslation<
+      TTranslationMap[K][TLocales[number]],
+      TTranslationMap[K][TFallbackLocale],
+      TLocales
+    >;
+  }> {
+    const file = fs.readFileSync(opts.in, "utf-8");
+    const json = await tryCatch<TTranslationMap>(JSON.parse(file));
+
+    if (json.error) {
+      throw new Error(
+        "There was an error while generating from json ${opts.in} file",
+      );
+    }
+
+    const map = {} as {
+      [K in keyof TTranslationMap]: ZykieTranslation<
+        TTranslationMap[K][TLocales[number]],
+        TTranslationMap[K][TFallbackLocale],
+        TLocales
+      >;
+    };
+
+    const keys = Object.keys(json.data);
+
+    for (const key of keys) {
+      map[key] = this.create(json.data[key]);
+    }
+
+    return map;
   }
 
   public create<TString extends string, TDefaultString extends string>(

@@ -1,4 +1,5 @@
 import { test, expect } from "vitest";
+import { Translations } from "./translations";
 import { Zykie } from "./zykie";
 
 const locales = ["en", "de", "ba", "fr"] as const;
@@ -11,6 +12,8 @@ const zykie = new Zykie({
   fallbackLocale,
 });
 
+const t = await zykie.generateFromJson<Translations>({ in: "src/lib/t.json" });
+
 const hello = zykie.create({
   en: "Hello!",
   de: "Hallo!",
@@ -20,8 +23,8 @@ const hello = zykie.create({
 
 const locale = zykie.create({
   en: "en var{locale}",
-  de: "en var{locale}",
-  ba: "en var{locale}",
+  de: "de var{locale}",
+  ba: "ba var{locale}",
   fr: null,
 });
 
