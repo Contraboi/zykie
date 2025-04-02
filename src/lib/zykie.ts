@@ -1,18 +1,13 @@
 import fs from "fs";
-import { generateTranslationType } from "./generator";
 import {
   Condition,
   ConditionFunction,
   ConditionTranslations,
   GetVariablesFromString,
 } from "./types";
-import { tryCatch } from "./utils";
+import { inputPath, tryCatch } from "../utils";
 
 let __currentLocale = "";
-
-type GenerateFromJsonOpts = {
-  in: string;
-};
 
 export class Zykie<
   TLocales extends readonly string[],
@@ -52,21 +47,19 @@ export class Zykie<
         TTranslationMap[K][TLocales[number]]
       >;
     },
-  >(
-    opts: GenerateFromJsonOpts,
-  ): Promise<{
+  >(): Promise<{
     [K in keyof TTranslationMap]: ZykieTranslation<
       TTranslationMap[K][TLocales[number]],
       TTranslationMap[K][TFallbackLocale],
       TLocales
     >;
   }> {
-    const file = fs.readFileSync(opts.in, "utf-8");
+    const file = fs.readFileSync(inputPath, "utf-8");
     const json = await tryCatch<TTranslationMap>(JSON.parse(file));
 
     if (json.error) {
       throw new Error(
-        "There was an error while generating from json ${opts.in} file",
+        `There was an error while generating from json ${inputPath} file`,
       );
     }
 

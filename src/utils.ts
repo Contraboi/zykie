@@ -22,3 +22,7 @@ export async function tryCatch<T, E = Error>(
     return { data: null, error: error as E };
   }
 }
+
+export const root = "./src/generated";
+export const inputPath = root + "/translations.json";
+export const outPath = root + "/translations.d.ts";
