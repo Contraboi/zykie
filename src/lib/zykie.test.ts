@@ -13,6 +13,7 @@ const zykie = new Zykie({
 });
 
 const t = await zykie.generateFromJson<Translations>({ in: "src/lib/t.json" });
+console.log(t.test.get({ lang: "88", supak: "123" }));
 
 const hello = zykie.create({
   en: "Hello!",

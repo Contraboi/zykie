@@ -1,9 +1,9 @@
 import fs from "fs";
-import { generateTranslationType } from "./generator";
 import {
   Condition,
   ConditionFunction,
   ConditionTranslations,
+  GeneratorEntry,
   GetVariablesFromString,
 } from "./types";
 import { tryCatch } from "./utils";
@@ -47,20 +47,25 @@ export class Zykie<
 
   async generateFromJson<
     TTranslationMap extends {
-      [K in keyof TTranslationMap]: Record<
-        TLocales[number],
-        TTranslationMap[K][TLocales[number]]
+      [K in keyof TTranslationMap]: Array<
+        GeneratorEntry<
+          TTranslationMap[K][number]["translation"] & string,
+          TLocales[number]
+        >
       >;
     },
   >(
     opts: GenerateFromJsonOpts,
   ): Promise<{
     [K in keyof TTranslationMap]: ZykieTranslation<
-      TTranslationMap[K][TLocales[number]],
-      TTranslationMap[K][TFallbackLocale],
+      TTranslationMap[K][number]["translation"] & string,
+      TTranslationMap[K][number]["locale"] extends TFallbackLocale
+        ? TTranslationMap[K][number]["translation"] & string
+        : never,
       TLocales
     >;
   }> {
+    0;
     const file = fs.readFileSync(opts.in, "utf-8");
     const json = await tryCatch<TTranslationMap>(JSON.parse(file));
 
@@ -72,8 +77,10 @@ export class Zykie<
 
     const map = {} as {
       [K in keyof TTranslationMap]: ZykieTranslation<
-        TTranslationMap[K][TLocales[number]],
-        TTranslationMap[K][TFallbackLocale],
+        TTranslationMap[K][number]["translation"] & string,
+        TTranslationMap[K][number]["locale"] extends TFallbackLocale
+          ? TTranslationMap[K][number]["translation"] & string
+          : never,
         TLocales
       >;
     };
@@ -81,7 +88,82 @@ export class Zykie<
     const keys = Object.keys(json.data);
 
     for (const key of keys) {
-      map[key] = this.create(json.data[key]);
+      const entries = json.data[key] as Array<GeneratorEntry<string, string>>;
+      const defaults = {} as Record<TLocales[number], string>;
+      const variations = {} as Record<string, Record<TLocales[number], string>>;
+      let defaultT: string | null = null;
+
+      for (const entry of entries) {
+        if (entry.type === "default") {
+          defaults[entry.locale] = entry.translation;
+          if (!defaultT && entry.locale === this.fallbackLocale)
+            defaultT = entry.translation;
+        }
+        if (entry.type === "variation") {
+          variations[entry.condition] = {
+            ...variations[entry.condition],
+            [entry.locale]: entry.translation,
+          };
+        }
+      }
+
+      const t = this.create(defaults);
+      const varKeys = Object.keys(variations);
+
+      for (const k of varKeys) {
+        // Extract all var{...} variable names
+        const varNames = [...(defaultT?.matchAll(/var{([^}]+)}/g) || [])].map(
+          (m) => m[1],
+        );
+
+        // Split on AND operator
+        const conditionParts = k.split("&&").map((part) => part.trim());
+
+        // Parse each condition expression
+        const parsedConditions = conditionParts
+          .map((part) => {
+            const match = part.match(/(.*?)([%><=])(.*)/);
+            if (!match) return null;
+
+            const [, leftRaw, operator, rightRaw] = match;
+            const left = leftRaw.trim();
+            const right = rightRaw.trim();
+
+            return { left, operator, right };
+          })
+          .filter(Boolean);
+
+        t.conditions.push({
+          function: (opts) => {
+            return parsedConditions.every(({ left, operator, right }) => {
+              // Only allow access to variables defined in var{...}
+              if (!varNames.includes(left)) return false;
+
+              const a = opts[left];
+              const b = isNaN(Number(right)) ? right : Number(right);
+              const numA = isNaN(Number(a)) ? a : Number(a);
+
+              console.log(variations[k]);
+
+              switch (operator) {
+                case "=":
+                  return numA == b;
+                case ">":
+                  return numA > b;
+                case "<":
+                  return numA < b;
+                case "%":
+                  return Number(numA) % Number(b) === 0;
+                default:
+                  return false;
+              }
+            });
+          },
+          translations: variations[k],
+        });
+      }
+
+      map[key] = t;
     }
 
     return map;
@@ -119,7 +201,7 @@ class ZykieTranslation<
   TLocales extends readonly string[],
 > {
   private readonly fallbackLocale: TLocales[number];
-  private conditions: Condition<TLocales, TString>[] = [];
+  public conditions: Condition<TLocales, TString>[] = [];
   translations: {
     [key in TLocales[number]]: TString;
   };

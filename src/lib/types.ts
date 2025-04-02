@@ -18,3 +18,16 @@ export type Condition<
   function: ConditionFunction<TString>;
   translations: ConditionTranslations<TLocales>;
 };
+
+export type GeneratorEntry<TString extends string, TLocale extends string> =
+  | {
+      type: "default";
+      locale: TLocale;
+      translation: TString;
+    }
+  | {
+      type: "variation";
+      locale: TLocale;
+      translation: TString;
+      condition: "string";
+    };
