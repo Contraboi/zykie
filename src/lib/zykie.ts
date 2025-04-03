@@ -6,6 +6,7 @@ import {
   GetVariablesFromString,
 } from "./types";
 import { inputPath, tryCatch } from "../utils";
+import { logWarn } from "../bin/logger";
 
 let __currentLocale = "";
 
@@ -205,7 +206,7 @@ class ZykieTranslation<
       );
     }
 
-    console.warn(
+    logWarn(
       `No translation for locale "${locale}" found, returning fallback locale translation: "${this.fallbackLocale}"`,
     );
 
