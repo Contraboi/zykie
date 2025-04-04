@@ -1,6 +1,6 @@
 {
   "name": "zykie",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "Take the localization of your app to the next level",
   "main": "dist/index.js",
   "type": "module",
@@ -19,6 +19,16 @@
     "internationalization",
     "typescript"
   ],
+  "bin": {
+    "zykie": "./dist/bin/index.js"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
   "author": "Selmir Nedžibi",
   "license": "ISC",
   "homepage": "https://github.com/Contraboi/zykie",
@@ -33,5 +43,8 @@
   },
   "bugs": {
     "url": "https://github.com/Contraboi/zykie/issues"
+  },
+  "dependencies": {
+    "@types/node": "^22.13.17"
   }
 }
