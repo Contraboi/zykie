@@ -1,3 +1,5 @@
+
+
 ![frame-1.gif](docs/frame-1.gif)
 ![frame-2.gif](docs%2Fframe-2.gif)
 
@@ -64,7 +66,7 @@ console.log(greet.get({ name: "John" })); // Hello, John
 
 ## Dynamic locales
 
-You can also use change the current locale dynamically.
+You can also change the current locale dynamically.
 
 ```ts
 const locales = ["en", "ba"] as const;
